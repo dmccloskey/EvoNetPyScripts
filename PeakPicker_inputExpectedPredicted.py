@@ -19,7 +19,7 @@ def read_csv(filename, delimiter=','):
         sys.exit('%s does not exist' % e) 
     return data
 
-def plotExpectedPredicted(input, output, expected, label, fig, axes):
+def plotExpectedPredicted(input, output, expected, label, fig):
     """Generate a side by side plot of expected and predicted
 
     Args:
@@ -28,26 +28,21 @@ def plotExpectedPredicted(input, output, expected, label, fig, axes):
         expected (np.array): expected pixels
         label (string): label of the image
         fig
-        axes
     """
-    input_2d = (np.reshape(input, (28, 28)) * 255)#.astype(np.uint8)
-    expected_2d = (np.reshape(expected, (28, 28)) * 255)#.astype(np.uint8)
-    output_2d = (np.reshape(output, (28, 28)) * 255)#.astype(np.uint8)
+    N = 512
+    g1 = (np.linspace(0, N, N), np.array(input))
+    g2 = (np.linspace(0, N, N), np.array(expected))
+    g3 = (np.linspace(0, N, N), np.array(output))
 
-    ax0 = axes[0]    
-    ax0.imshow(input_2d, interpolation='nearest', cmap='gray')
-    ax0.set_title('Digit Label: {}'.format(label))
-    ax0.set_xbound([0,28])
+    data = (g1, g2, g3)
+    colors = ("red", "green", "blue")
+    groups = ("input", "expected", "output")
 
-    ax1 = axes[1]    
-    ax1.imshow(expected_2d, interpolation='nearest', cmap='gray')
-    ax1.set_title('Digit Label: {}'.format(label))
-    ax1.set_xbound([0,28])
+    ax = fig.add_subplot(1, 1, 1)
 
-    ax2 = axes[2]    
-    ax2.imshow(output_2d, interpolation='nearest', cmap='gray')
-    ax2.set_title('Digit Label: {}'.format(label))
-    ax2.set_xbound([0,28])
+    for data, color, group in zip(data, colors, groups):
+        x, y = data
+        ax.scatter(x, y, alpha=0.8, c=color, edgecolors='none', s=30, label=group)
 
 def main(filename_input, filename_output, filename_expected, input_headers, output_headers, expected_headers):
     """Run main script"""
@@ -66,23 +61,19 @@ def main(filename_input, filename_output, filename_expected, input_headers, outp
         expected = np.array([expected_data[n][h] for h in expected_headers]).astype(np.float)
         output = np.array([output_data[n][h] for h in output_headers]).astype(np.float)
 
-        fig, axes = plt.subplots(1,3, 
-            figsize=(10,10),
-            sharex=True, sharey=True,
-            subplot_kw=dict(adjustable='box', aspect='equal')) #https://stackoverflow.com/q/44703433/1870832
-
-        plotExpectedPredicted(input, output, expected, "", fig, axes)
+        fig = plt.figure()
+        plotExpectedPredicted(input, output, expected, "", fig)
 
         # show the image
-        plt.tight_layout()
+        plt.legend(loc=2)
         plt.show()
 
 # Run main# Run main
 if __name__ == "__main__":
-	filename_input = "C:/Users/dmccloskey/Documents/MNIST_examples/VAE/Gpu0/VAE_NodeInputsPerEpoch.csv"
-	filename_expected = "C:/Users/dmccloskey/Documents/MNIST_examples/VAE/Gpu0/VAE_ExpectedPerEpoch.csv"
-	filename_output = "C:/Users/dmccloskey/Documents/MNIST_examples/VAE/Gpu0/VAE_NodeOutputsPerEpoch.csv"
-	input_headers = ["Input_{:012d}_Input_Batch-0_Memory-0".format(i) for i in range(784)]
-	output_headers = ["Output_{:012d}_Output_Batch-0_Memory-0".format(i) for i in range(784)]
-	expected_headers = ["Output_{:012d}_Expected_Batch-0_Memory-0".format(i) for i in range(784)]
+	filename_input = "C:/Users/dmccloskey/Documents/MNIST_examples/PeakInt/Gpu0/DenoisingAE_NodeInputsPerEpoch.csv"
+	filename_expected = "C:/Users/dmccloskey/Documents/MNIST_examples/PeakInt/Gpu0/DenoisingAE_ExpectedPerEpoch.csv"
+	filename_output = "C:/Users/dmccloskey/Documents/MNIST_examples/PeakInt/Gpu0/DenoisingAE_NodeOutputsPerEpoch.csv"
+	input_headers = ["Intensity_{:012d}_Input_Batch-0_Memory-0".format(i) for i in range(512)]
+	output_headers = ["Intensity_Out_{:012d}_Output_Batch-0_Memory-0".format(i) for i in range(512)]
+	expected_headers = ["Intensity_Out_{:012d}_Expected_Batch-0_Memory-0".format(i) for i in range(512)]
 	main(filename_input, filename_output, filename_expected, input_headers, output_headers, expected_headers)
