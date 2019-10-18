@@ -79,10 +79,10 @@ def main(filename_input, filename_output, filename_expected, input_headers, outp
 
 # Run main# Run main
 if __name__ == "__main__":
-	filename_input = "C:/Users/dmccloskey/Documents/MNIST_examples/VAE/Gpu0/VAE_NodeInputsPerEpoch.csv"
-	filename_expected = "C:/Users/dmccloskey/Documents/MNIST_examples/VAE/Gpu0/VAE_ExpectedPerEpoch.csv"
-	filename_output = "C:/Users/dmccloskey/Documents/MNIST_examples/VAE/Gpu0/VAE_NodeOutputsPerEpoch.csv"
-	input_headers = ["Input_{:012d}_Input_Batch-0_Memory-0".format(i) for i in range(784)]
-	output_headers = ["Output_{:012d}_Output_Batch-0_Memory-0".format(i) for i in range(784)]
-	expected_headers = ["Output_{:012d}_Expected_Batch-0_Memory-0".format(i) for i in range(784)]
+	filename_input = "C:/Users/dmccloskey/Documents/MNIST_examples/VAE/Gpu3/VAE_NodeInputsPerEpoch.csv"
+	filename_expected = "C:/Users/dmccloskey/Documents/MNIST_examples/VAE/Gpu3/VAE_ExpectedPerEpoch.csv"
+	filename_output = "C:/Users/dmccloskey/Documents/MNIST_examples/VAE/Gpu3/VAE_NodeOutputsPerEpoch.csv"
+	input_headers = ["Input_{:012d}_Input_Batch-1_Memory-0".format(i) for i in range(784)]
+	output_headers = ["Output_{:012d}_Output_Batch-1_Memory-0".format(i) for i in range(784)]
+	expected_headers = ["Output_{:012d}_Expected_Batch-1_Memory-0".format(i) for i in range(784)]
 	main(filename_input, filename_output, filename_expected, input_headers, output_headers, expected_headers)
