@@ -70,9 +70,9 @@ def main(filename_input, filename_output, filename_expected, input_headers, outp
 
 # Run main# Run main
 if __name__ == "__main__":
-	filename_input = "C:/Users/dmccloskey/Documents/MNIST_examples/PeakInt/Gpu0/DenoisingAE_NodeInputsPerEpoch.csv"
-	filename_expected = "C:/Users/dmccloskey/Documents/MNIST_examples/PeakInt/Gpu0/DenoisingAE_ExpectedPerEpoch.csv"
-	filename_output = "C:/Users/dmccloskey/Documents/MNIST_examples/PeakInt/Gpu0/DenoisingAE_NodeOutputsPerEpoch.csv"
+	filename_input = "C:/Users/dmccloskey/Documents/MNIST_examples/PeakIntegrator/Gpu1-0a/DenoisingAE_NodeInputsPerEpoch.csv"
+	filename_expected = "C:/Users/dmccloskey/Documents/MNIST_examples/PeakIntegrator/Gpu1-0a/DenoisingAE_ExpectedPerEpoch.csv"
+	filename_output = "C:/Users/dmccloskey/Documents/MNIST_examples/PeakIntegrator/Gpu1-0a/DenoisingAE_NodeOutputsPerEpoch.csv"
 	input_headers = ["Intensity_{:012d}_Input_Batch-0_Memory-0".format(i) for i in range(512)]
 	output_headers = ["Intensity_Out_{:012d}_Output_Batch-0_Memory-0".format(i) for i in range(512)]
 	expected_headers = ["Intensity_Out_{:012d}_Expected_Batch-0_Memory-0".format(i) for i in range(512)]
