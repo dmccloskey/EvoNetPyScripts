@@ -37,7 +37,8 @@ def plotLatentTraversal(input, output, dimension, fig, axes):
         axes[dimension,batch].imshow(output_2d, interpolation='nearest', cmap='gray')
         #axes[dimension,batch].set_title('Dimension {} and batch {}'.format(dimension,batch))
         axes[dimension,batch].set_xbound([0,28])
-        axes[dimension,batch].set_axis_off
+        axes[dimension,batch].set_axis_off();
+        axes[dimension,batch].set_frame_on(False)
 
 def main(filename_input, filename_output, input_headers, output_headers):
     """Run main script"""
