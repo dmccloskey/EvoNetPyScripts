@@ -2,32 +2,39 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
-def plotTrainTest(index_name, train_test_headers, train_test_data, axs, color, marker, label):
+def plotTrainTest(index_name, headers, data, axs, color, marker, label):
     """Generate a side by side plot of expected and predicted
 
     Args:
-        train_test_headers: list of train/test metric names
-        train_test_data: data frame where each frow is an iteration and each column is a train/test metric
-        fig
+        headers: list of train/test metric names
+        data: data frame where each frow is an iteration and each column is a train/test metric
+        axs
+        color: the color to use for the plots
+        maker: the marker to use for the plots
+        label: the label to use for the plots
     """
-    n_metric_pairs = len(train_test_headers)
+    n_metric_pairs = len(headers)
+    data_downsampled = data.iloc[::2] # down sample by 1/2
     for n in range(0,n_metric_pairs):
         if n==0:
-            axs[n, 0].scatter(train_test_data.loc[:, index_name],  train_test_data.loc[:, train_test_headers[n][0]],
+            axs[n, 0].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][0]],
                        alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=label)
             axs[n, 0].title.set_text("Train")
-            axs[n, 1].scatter(train_test_data.loc[:, index_name],  train_test_data.loc[:, train_test_headers[n][1]],
+            axs[n, 1].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][1]],
                        alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=label)
             axs[n, 1].title.set_text("Test")
         else:
-            axs[n, 0].scatter(train_test_data.loc[:, index_name],  train_test_data.loc[:, train_test_headers[n][0]],
+            axs[n, 0].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][0]],
                        alpha=0.5, c=color, marker=marker, edgecolors='none', s=20)
-            axs[n, 1].scatter(train_test_data.loc[:, index_name],  train_test_data.loc[:, train_test_headers[n][1]],
+            axs[n, 1].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][1]],
                        alpha=0.5, c=color, marker=marker, edgecolors='none', s=20)
 
-def aggregateTrainTestStats(headers, agg_funcs, index_name, data, label):
+def aggregateTrainTestStats(headers, agg_funcs, index_name, data, label, n_agg_values = 10):
     """Creates a pandas data frame with headers according to headers
-    and row labels according to labels
+    and row labels according to labels where the column data from the
+    specified header is aggregated according to the specified aggregation function.
+    In addition, the number of iterations required to reach the aggregation function
+    100 times is also reported.
 
     Args:
         headers: list of train/test metric names
@@ -39,13 +46,29 @@ def aggregateTrainTestStats(headers, agg_funcs, index_name, data, label):
         pandas data frame
     """
     assert(len(headers)==len(agg_funcs))
-    row_data = {"label":label}
+    row_data = {"label":label}    
     for header_tup, agg_func in zip(headers, agg_funcs):
         for header in header_tup:
+            # calculate the aggregation statistic
+            agg_func_value = None
             if agg_func == "max":
-                row_data.update({header:data.loc[:,header].max()})
+                agg_func_value = data.loc[:,header].max()
             elif agg_func == "min":
-                row_data.update({header:data.loc[:,header].min()})
+                agg_func_value = data.loc[:,header].min()
+            row_data.update({header:agg_func_value})
+
+            # calculate # of iterations using the agg stat
+            indices = []
+            if agg_func == "max":
+                indices = data[data[header]>=agg_func_value*0.98].index.tolist()
+            elif agg_func == "min":
+                indices = data[data[header]<=agg_func_value*1.02].index.tolist()
+            # TODO: added only for loss error
+            #n_agg_values = 10
+            #if "_Error" in header:
+            #    n_agg_values = 1
+            index = indices[n_agg_values-1] if len(indices) >= n_agg_values else np.NaN
+            row_data.update({header + "_itersToValue":index})
     return row_data
 
 def readDataFilenamesCsv(filename):
@@ -93,8 +116,10 @@ def main(data_dir, data_filename, headers_filename, index_name, n_rows):
 
     # make the empty data frame for the aggregate statistics
     flat_headers = [item for sublist in headers for item in sublist]
-    agg_stats = pd.DataFrame(columns=flat_headers.insert(0, "label"))
-    print(flat_headers)
+    custom_headers = [item + "_itersToValue" for item in flat_headers]
+    flat_headers.extend(custom_headers)
+    flat_headers.insert(0, "label")
+    agg_stats = pd.DataFrame(columns=flat_headers)
 
     # make the initial figure
     n_metric_pairs = len(headers)
@@ -114,9 +139,11 @@ def main(data_dir, data_filename, headers_filename, index_name, n_rows):
         plotTrainTest(index_name, headers, data, 
                       axs, all_colors[color_iter], all_markers[marker_iter], labels[n])
         color_iter += 1
-        if color_iter > len(all_colors):
+        if color_iter >= len(all_colors):
             color_iter = 0;
             marker_iter += 1
+            if marker_iter >= len(all_markers):
+                marker_iter = 0
 
         # calculate the aggregate statistics
         row_data = aggregateTrainTestStats(headers, agg_funcs, index_name, data, labels[n])
@@ -131,7 +158,7 @@ def main(data_dir, data_filename, headers_filename, index_name, n_rows):
     # show the image
     plt.show()
 
-# Run main# Run main
+# Run main
 if __name__ == "__main__":
     # Input files
     data_dir = "C:/Users/dmccloskey/Documents/MetabolomicsNormalization/"
