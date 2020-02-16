@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
-def plotTrainTest(index_name, train_test_headers, train_test_data, axs, color, marker1, marker2, label1, label2):
+def plotTrainTest(index_name, train_test_headers, train_test_data, axs, color, marker, label):
     """Generate a side by side plot of expected and predicted
 
     Args:
@@ -13,46 +13,120 @@ def plotTrainTest(index_name, train_test_headers, train_test_data, axs, color, m
     n_metric_pairs = len(train_test_headers)
     for n in range(0,n_metric_pairs):
         if n==0:
-            axs[n].scatter(train_test_data.loc[:, index_name],  train_test_data.loc[:, train_test_headers[n][0]],
-                       alpha=0.5, c=color, marker=marker1, edgecolors='none', s=20, label=label1)
-            axs[n].scatter(train_test_data.loc[:, index_name],  train_test_data.loc[:, train_test_headers[n][1]],
-                       alpha=0.5, c=color, marker=marker2, edgecolors='none', s=20, label=label2)
+            axs[n, 0].scatter(train_test_data.loc[:, index_name],  train_test_data.loc[:, train_test_headers[n][0]],
+                       alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=label)
+            axs[n, 0].title.set_text("Train")
+            axs[n, 1].scatter(train_test_data.loc[:, index_name],  train_test_data.loc[:, train_test_headers[n][1]],
+                       alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=label)
+            axs[n, 1].title.set_text("Test")
         else:
-            axs[n].scatter(train_test_data.loc[:, index_name],  train_test_data.loc[:, train_test_headers[n][0]],
-                       alpha=0.5, c=color, marker=marker1, edgecolors='none', s=20)
-            axs[n].scatter(train_test_data.loc[:, index_name],  train_test_data.loc[:, train_test_headers[n][1]],
-                       alpha=0.5, c=color, marker=marker2, edgecolors='none', s=20)
+            axs[n, 0].scatter(train_test_data.loc[:, index_name],  train_test_data.loc[:, train_test_headers[n][0]],
+                       alpha=0.5, c=color, marker=marker, edgecolors='none', s=20)
+            axs[n, 1].scatter(train_test_data.loc[:, index_name],  train_test_data.loc[:, train_test_headers[n][1]],
+                       alpha=0.5, c=color, marker=marker, edgecolors='none', s=20)
 
-def main(train_test_headers, train_test_filenames, train_test_labels, index_name, n_rows):
+def aggregateTrainTestStats(headers, agg_funcs, index_name, data, label):
+    """Creates a pandas data frame with headers according to headers
+    and row labels according to labels
+
+    Args:
+        headers: list of train/test metric names
+        agg_func: name of an aggregation function
+        index_name: name of the index header
+        data: the actual data frame of values to aggregate according to the specified statistics
+
+    Returns:
+        pandas data frame
+    """
+    assert(len(headers)==len(agg_funcs))
+    row_data = {"label":label}
+    for header_tup, agg_func in zip(headers, agg_funcs):
+        for header in header_tup:
+            if agg_func == "max":
+                row_data.update({header:data.loc[:,header].max()})
+            elif agg_func == "min":
+                row_data.update({header:data.loc[:,header].min()})
+    return row_data
+
+def readDataFilenamesCsv(filename):
+    """Creates a pandas data frame with headers for 'filenames','labels','color','marker'
+    from a .csv file and returns each of the columns as seperate entities.  The column 'used_' is
+    used to select what rows to use
+
+    Args:
+        filename: name of the file
+
+    Returns:
+        pandas data frame with headers for 'filenames','labels','colors','markers'
+    """
+    data = pd.read_csv(filename)
+    data_used = data[data["used_"]==True]
+    filenames = list(data_used.loc[:, "filenames"]) 
+    labels = list(data_used.loc[:, "labels"])
+    #filenames, labels, colors, markers = data_used.loc[:, "filenames"], data_used.loc[:, "labels"], data_used.loc[:, "colors"], data_used.loc[:, "markers"]
+    return filenames, labels
+
+def readDataHeaders(filename):
+    """Creates a pandas data frame with headers for 'train_headers','test_headers','agg_funcs'
+    from a .csv file and returns each of the columns as seperate entities.  The column 'used_' is
+    used to select what rows to use
+
+    Args:
+        filename: name of the file
+
+    Returns:
+        pandas data frame with headers for 'filenames','labels','colors','markers'
+    """
+    data = pd.read_csv(filename)
+    data_used = data[data["used_"]==True]
+    headers = list(zip(list(data_used.loc[:, "train_headers"]),list(data_used.loc[:, "test_headers"])))
+    agg_funcs = list(data_used.loc[:, "agg_funcs"])
+    #filenames, labels, colors, markers = data_used.loc[:, "filenames"], data_used.loc[:, "labels"], data_used.loc[:, "colors"], data_used.loc[:, "markers"]
+    return headers, agg_funcs
+
+def main(data_dir, data_filename, headers_filename, index_name, n_rows):
     """Run main script"""
 
-    # read in the data and plot each train/test metric
-    n_metric_pairs = len(train_test_headers)
-    n_data = len(train_test_filenames)
-    fig, axs = plt.subplots(n_metric_pairs, 1, sharex=True, sharey=False)
-    all_colors = ["b","g","r","c","m","y","k"]
-    all_markers = [".","*","+","o","x","v"]
+    # read in the input files
+    filenames, labels = readDataFilenamesCsv(data_filename)
+    headers, agg_funcs = readDataHeaders(headers_filename)
+
+    # make the empty data frame for the aggregate statistics
+    flat_headers = [item for sublist in headers for item in sublist]
+    agg_stats = pd.DataFrame(columns=flat_headers.insert(0, "label"))
+    print(flat_headers)
+
+    # make the initial figure
+    n_metric_pairs = len(headers)
+    n_data = len(filenames)
+    fig, axs = plt.subplots(n_metric_pairs, 2, sharex=True, sharey=False)
+
+    # read in the data and anlayze each train/test metric
+    all_colors = ["b","r","g","m","c","y","k"]
+    all_markers = [".","+",",","o","x","v"]
     marker_iter = 0
     color_iter = 0
     for n in range(0, n_data):
-        data = pd.read_csv(train_test_filenames[n])
+        # trim the data
+        data = pd.read_csv(filenames[n]).iloc[:n_rows,:]
 
         # plot each train/test metric
-        train_label = train_test_labels[n] + "_train"
-        test_label = train_test_labels[n] + "_test"
-        plotTrainTest(index_name, train_test_headers, data.iloc[:n_rows,:], 
-                      axs, all_colors[color_iter], all_markers[marker_iter], all_markers[marker_iter+1], train_label, test_label)
+        plotTrainTest(index_name, headers, data, 
+                      axs, all_colors[color_iter], all_markers[marker_iter], labels[n])
         color_iter += 1
         if color_iter > len(all_colors):
             color_iter = 0;
-            marker_iter += 2
+            marker_iter += 1
 
         # calculate the aggregate statistics
+        row_data = aggregateTrainTestStats(headers, agg_funcs, index_name, data, labels[n])
+        agg_stats = agg_stats.append(row_data, ignore_index=True)
 
     # store the aggregate statistics
+    agg_stats.to_csv(data_dir + "TrainTestMetrics.csv")
 
     # make the legend
-    axs[0].legend(loc="upper left", markerscale=2)
+    axs[0,0].legend(loc="upper left", markerscale=2)
 
     # show the image
     plt.show()
@@ -60,25 +134,10 @@ def main(train_test_headers, train_test_filenames, train_test_labels, index_name
 # Run main# Run main
 if __name__ == "__main__":
     # Input files
-	train_test_filenames = ["C:/Users/dmccloskey/Documents/MetabolomicsNormalization/ALEsKOs01/ConcsBN/FC-0_Sampled_OffProj/Classifier_TrainValMetricsPerEpoch.csv",
-                  "C:/Users/dmccloskey/Documents/MetabolomicsNormalization/ALEsKOs01/ConcsBN/FC-0_Sampled_OnProj/Classifier_TrainValMetricsPerEpoch.csv",
-                  "C:/Users/dmccloskey/Documents/MetabolomicsNormalization/ALEsKOs01/ConcsBN/FC-2_Sampled_OffProj/Classifier_TrainValMetricsPerEpoch.csv",
-                  "C:/Users/dmccloskey/Documents/MetabolomicsNormalization/ALEsKOs01/ConcsBN/FC-2_Sampled_OnProj/Classifier_TrainValMetricsPerEpoch.csv",
-                  "C:/Users/dmccloskey/Documents/MetabolomicsNormalization/ALEsKOs01/ConcsBN/FC-8_Sampled_OffProj/Classifier_TrainValMetricsPerEpoch.csv",
-                  "C:/Users/dmccloskey/Documents/MetabolomicsNormalization/ALEsKOs01/ConcsBN/FC-8_Sampled_OnProj/Classifier_TrainValMetricsPerEpoch.csv"]
-	train_test_labels= ["FC-0_Sampled_OffProj",
-                  "FC-0_Sampled_OnProj",
-                  "FC-2_Sampled_OffProj",
-                  "FC-2_Sampled_OnProj",
-                  "FC-8_Sampled_OffProj",
-                  "FC-8_Sampled_OnProj"]
-
-    # Input headers
-	loss_headers = ["Training_Train_Error","Validation_Test_Error"]
-	accuracy_headers = ["Training_AccuracyMCMicro","Validation_AccuracyMCMicro"]
-	precision_headers = ["Training_PrecisionMCMicro","Validation_PrecisionMCMicro"]
-	train_test_headers = [loss_headers, accuracy_headers, precision_headers]
+    data_dir = "C:/Users/dmccloskey/Documents/MetabolomicsNormalization/"
+    data_filename = data_dir + "TrainTestMetricsInput.csv"
+    headers_filename = data_dir + "TrainTestMetricsHeaders.csv"
 
     # Name of the index
-	index_name = "Epoch"; n_rows = 90000
-	main(train_test_headers, train_test_filenames, train_test_labels, index_name, n_rows)
+    index_name = "Epoch"; n_rows = 90000
+    main(data_dir, data_filename, headers_filename, index_name, n_rows)
