@@ -61,7 +61,7 @@ def main(filename_input, filename_output, filename_expected, input_headers, outp
     n_data = len(input_data)
     
     # parse each data row
-    for n in range(30, n_data):
+    for n in range(0, n_data):
         input = []
         expected = []
         output = []
@@ -83,9 +83,9 @@ def main(filename_input, filename_output, filename_expected, input_headers, outp
 
 # Run main# Run main
 if __name__ == "__main__":
-    filename_input = "C:/Users/dmccloskey/Documents/MNIST_examples/CVAE/Gpu0-1a/CVAE_NodeInputsPerEpoch.csv"
-    filename_expected = "C:/Users/dmccloskey/Documents/MNIST_examples/CVAE/Gpu0-1a/CVAE_ExpectedPerEpoch.csv"
-    filename_output = "C:/Users/dmccloskey/Documents/MNIST_examples/CVAE/Gpu0-1a/CVAE_NodeOutputsPerEpoch.csv"
+    filename_input = "C:/Users/dmccloskey/Documents/MNIST_examples/CVAE/Gpu0-2c/CVAE_NodeInputsPerEpoch.csv"
+    filename_expected = "C:/Users/dmccloskey/Documents/MNIST_examples/CVAE/Gpu0-2c/CVAE_ExpectedPerEpoch.csv"
+    filename_output = "C:/Users/dmccloskey/Documents/MNIST_examples/CVAE/Gpu0-2c/CVAE_NodeOutputsPerEpoch.csv"
     input_headers = []
     output_headers = []
     expected_headers = []
