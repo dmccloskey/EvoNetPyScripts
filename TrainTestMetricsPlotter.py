@@ -60,9 +60,9 @@ def aggregateTrainTestStats(headers, agg_funcs, index_name, data, label, n_agg_v
             # calculate # of iterations using the agg stat
             indices = []
             if agg_func == "max":
-                indices = data[data[header]>=agg_func_value*0.99].index.tolist()
+                indices = data[data[header]>=agg_func_value*0.98].index.tolist()
             elif agg_func == "min":
-                indices = data[data[header]<=agg_func_value*1.01].index.tolist()
+                indices = data[data[header]<=agg_func_value*1.02].index.tolist()
             # TODO: added only for loss error
             n_agg_values = 10
             if "_Error" in header:

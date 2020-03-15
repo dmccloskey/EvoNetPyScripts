@@ -34,6 +34,6 @@ def main(data_dir, filename):
 # Run main
 if __name__ == "__main__":
     # Input files
-    data_dir = "C:/Users/dmccloskey/Documents/MetabolomicsNormalization/"
+    data_dir = ""
     filename = data_dir + "CommandsToRun.csv"
     main(data_dir, filename)
