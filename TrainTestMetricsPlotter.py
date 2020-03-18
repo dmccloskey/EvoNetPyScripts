@@ -52,17 +52,17 @@ def aggregateTrainTestStats(headers, agg_funcs, index_name, data, label, n_agg_v
             # calculate the aggregation statistic
             agg_func_value = None
             if agg_func == "max":
-                agg_func_value = data.loc[:,header].max()
+                agg_func_value = data.loc[:,header].abs().max() # just use the magnitude and not the direction
             elif agg_func == "min":
-                agg_func_value = data.loc[:,header].min()
+                agg_func_value = data.loc[:,header].abs().min() # just use the magnitude and not the direction
             row_data.update({header:agg_func_value})
 
             # calculate # of iterations using the agg stat
             indices = []
             if agg_func == "max":
-                indices = data[data[header]>=agg_func_value*0.98].index.tolist()
+                indices = data[data[header].abs()>=agg_func_value*0.98].index.tolist()
             elif agg_func == "min":
-                indices = data[data[header]<=agg_func_value*1.02].index.tolist()
+                indices = data[data[header].abs()<=agg_func_value*1.02].index.tolist()
             # TODO: added only for loss error
             n_agg_values = 10
             if "_Error" in header:
@@ -107,7 +107,7 @@ def readDataHeaders(filename):
     #filenames, labels, colors, markers = data_used.loc[:, "filenames"], data_used.loc[:, "labels"], data_used.loc[:, "colors"], data_used.loc[:, "markers"]
     return headers, agg_funcs
 
-def main(data_dir, data_filename, headers_filename, index_name, n_rows):
+def main(data_dir, data_filename, headers_filename, index_name, n_rows, display_plot):
     """Run main script"""
 
     # read in the input files
@@ -124,7 +124,8 @@ def main(data_dir, data_filename, headers_filename, index_name, n_rows):
     # make the initial figure
     n_metric_pairs = len(headers)
     n_data = len(filenames)
-    fig, axs = plt.subplots(n_metric_pairs, 2, sharex=True, sharey=False)
+    if display_plot:
+        fig, axs = plt.subplots(n_metric_pairs, 2, sharex=True, sharey=False)
 
     # read in the data and anlayze each train/test metric
     all_colors = ["b","r","g","m","c","y","k"]
@@ -133,17 +134,18 @@ def main(data_dir, data_filename, headers_filename, index_name, n_rows):
     color_iter = 0
     for n in range(0, n_data):
         # trim the data
-        data = pd.read_csv(filenames[n]).iloc[:n_rows,:]
+        data = pd.read_csv(filenames[n], dtype=np.float32).iloc[:n_rows,:]
 
         # plot each train/test metric
-        plotTrainTest(index_name, headers, data, 
-                      axs, all_colors[color_iter], all_markers[marker_iter], labels[n])
-        color_iter += 1
-        if color_iter >= len(all_colors):
-            color_iter = 0;
-            marker_iter += 1
-            if marker_iter >= len(all_markers):
-                marker_iter = 0
+        if display_plot:
+            plotTrainTest(index_name, headers, data, 
+                          axs, all_colors[color_iter], all_markers[marker_iter], labels[n])
+            color_iter += 1
+            if color_iter >= len(all_colors):
+                color_iter = 0;
+                marker_iter += 1
+                if marker_iter >= len(all_markers):
+                    marker_iter = 0
 
         # calculate the aggregate statistics
         row_data = aggregateTrainTestStats(headers, agg_funcs, index_name, data, labels[n])
@@ -152,19 +154,20 @@ def main(data_dir, data_filename, headers_filename, index_name, n_rows):
     # store the aggregate statistics
     agg_stats.to_csv(data_dir + "TrainTestMetrics.csv")
 
-    # make the legend
-    axs[0,0].legend(loc="upper left", markerscale=2)
+    if display_plot:
+        # make the legend
+        axs[0,0].legend(loc="upper left", markerscale=2)
 
-    # show the image
-    plt.show()
+        # show the image
+        plt.show()
 
 # Run main
 if __name__ == "__main__":
     # Input files
-    data_dir = "C:/Users/dmccloskey/Documents/MetabolomicsNormalization/"
+    data_dir = ""
     data_filename = data_dir + "TrainTestMetricsInput.csv"
     headers_filename = data_dir + "TrainTestMetricsHeaders.csv"
 
     # Name of the index
     index_name = "Epoch"; n_rows = 90000
-    main(data_dir, data_filename, headers_filename, index_name, n_rows)
+    main(data_dir, data_filename, headers_filename, index_name, n_rows, False)
