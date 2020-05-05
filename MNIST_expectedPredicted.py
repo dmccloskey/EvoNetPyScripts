@@ -83,9 +83,12 @@ def main(filename_input, filename_output, filename_expected, input_headers, outp
 
 # Run main# Run main
 if __name__ == "__main__":
-    filename_input = "C:/Users/dmccloskey/Documents/MNIST_examples/CVAE/Gpu0-2c/CVAE_NodeInputsPerEpoch.csv"
-    filename_expected = "C:/Users/dmccloskey/Documents/MNIST_examples/CVAE/Gpu0-2c/CVAE_ExpectedPerEpoch.csv"
-    filename_output = "C:/Users/dmccloskey/Documents/MNIST_examples/CVAE/Gpu0-2c/CVAE_NodeOutputsPerEpoch.csv"
+    #filename_input = "C:/Users/dmccloskey/Documents/GitHub/EvoNetData/MNIST_examples/CVAE/Gpu0-2c/CVAE_NodeInputsPerEpoch.csv"
+    #filename_expected = "C:/Users/dmccloskey/Documents/GitHub/EvoNetData/MNIST_examples/CVAE/Gpu0-2c/CVAE_ExpectedPerEpoch.csv"
+    #filename_output = "C:/Users/dmccloskey/Documents/GitHub/EvoNetData/MNIST_examples/CVAE/Gpu0-2c/CVAE_NodeOutputsPerEpoch.csv"
+    filename_input = "C:/Users/dmccloskey/Documents/GitHub/EvoNetData/MNIST_examples/CVAE/Gpu2-0a/CVAE_NodeInputsPerEpoch.csv"
+    filename_expected = "C:/Users/dmccloskey/Documents/GitHub/EvoNetData/MNIST_examples/CVAE/Gpu2-0a/CVAE_ExpectedPerEpoch.csv"
+    filename_output = "C:/Users/dmccloskey/Documents/GitHub/EvoNetData/MNIST_examples/CVAE/Gpu2-0a/CVAE_NodeOutputsPerEpoch.csv"
     input_headers = []
     output_headers = []
     expected_headers = []

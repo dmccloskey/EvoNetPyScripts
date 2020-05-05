@@ -169,5 +169,5 @@ if __name__ == "__main__":
     headers_filename = data_dir + "TrainTestMetricsHeaders.csv"
 
     # Name of the index
-    index_name = "Epoch"; n_rows = 90000
+    index_name = "Epoch"; n_rows = 100000
     main(data_dir, data_filename, headers_filename, index_name, n_rows, False)
