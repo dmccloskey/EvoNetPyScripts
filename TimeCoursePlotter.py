@@ -74,7 +74,7 @@ def makeColumnHeaders(n_batch, n_node, memory_size, index_name):
     expected_headers.append(index_name)
     return input_headers, output_headers, expected_headers
 
-def main(data_dir, data_filename, nodes_filename, index_name, n_epoch, n_batch, nodes, memory_size):
+def main(data_dir, data_filename, nodes_filename, index_name, nodes, memory_size):
     """Run main script"""
 
     # read in the input files
@@ -96,17 +96,17 @@ def main(data_dir, data_filename, nodes_filename, index_name, n_epoch, n_batch, 
     color_iter = 0
     for n_row, n in enumerate(nodes):
         print("adding node {}...".format(n))
-        # make the expected column headers
-        input_headers, output_headers, expected_headers = makeColumnHeaders(n_batch, n, memory_size, index_name)
-
         for series in range(0,len(filenames)):
+            # make the expected column headers
+            input_headers, output_headers, expected_headers = makeColumnHeaders(filenames['n_batch'][series], n, memory_size, index_name)
+
             # read in and trim the data
             input_data = pd.read_csv(filenames['input_filenames'][series], usecols = input_headers, dtype=np.float32)
-            input_data = input_data[input_data[index_name]==n_epoch] # filter on epoch
+            input_data = input_data[input_data[index_name]==filenames['n_epoch'][series]] # filter on epoch
             output_data = pd.read_csv(filenames["output_filenames"][series], usecols = output_headers, dtype=np.float32)
-            output_data = output_data[output_data[index_name]==n_epoch] # filter on epoch
+            output_data = output_data[output_data[index_name]==filenames['n_epoch'][series]] # filter on epoch
             expected_data = pd.read_csv(filenames["expected_filenames"][series], usecols = expected_headers, dtype=np.float32)
-            expected_data = expected_data[expected_data[index_name]==n_epoch] # filter on epoch
+            expected_data = expected_data[expected_data[index_name]==filenames['n_epoch'][series]] # filter on epoch
 
             # plot each node time-course
             plotTimeCourse(n, n_row, memory_size, subplot_titles, input_data, output_data, expected_data, nodes_to_labels,
@@ -125,15 +125,13 @@ def main(data_dir, data_filename, nodes_filename, index_name, n_epoch, n_batch, 
 # Run main
 if __name__ == "__main__":
     # Input files
-    data_dir = "C:/Users/dmccloskey/Documents/GitHub/EvoNetData/MNIST_examples/HarmonicOscillator/Gpu0-0a/"
+    data_dir = ""
     data_filename = data_dir + "TimeCourseFilenames.csv"
     nodes_filename = data_dir + "TimeCourseNodes.csv"
 
     # Input parameters
     index_name = "Epoch"
-    n_epoch = 2000 # 6000 (kinetic)
-    n_batch = 0
     #nodes = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
     nodes = [0] # [11, 19, 20, 22] (kinetic)
     memory_size = 64 # 128 (kinetic)
-    main(data_dir, data_filename, nodes_filename, index_name, n_epoch, n_batch, nodes, memory_size)
+    main(data_dir, data_filename, nodes_filename, index_name, nodes, memory_size)
