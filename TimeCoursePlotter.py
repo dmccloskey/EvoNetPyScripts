@@ -22,19 +22,37 @@ def plotTimeCourse(n_node, n_row, memory_size, subplot_titles, input_data, outpu
     label = nodes_to_labels[nodes_to_labels["nodes"]==n_node]["labels"][n_node]
 
     # Make the subplots
-    axs[n_row, 0].scatter(x_data, input_data.iloc[0][1:],
-                alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
-    axs[n_row, 1].scatter(x_data, output_data.iloc[0][1:],
-                alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
-    axs[n_row, 2].scatter(x_data, expected_data.iloc[0][1:],
-                alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
-    # Make the titles 
-    axs[n_row, 0].title.set_text("{} {}".format(label, subplot_titles[0]))
-    axs[n_row, 1].title.set_text("{} {}".format(label, subplot_titles[1]))
-    axs[n_row, 2].title.set_text("{} {}".format(label, subplot_titles[2]))
+    try:
+        axs[n_row, 0].scatter(x_data, input_data.iloc[0][1:],
+                    alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
+        axs[n_row, 1].scatter(x_data, output_data.iloc[0][1:],
+                    alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
+        axs[n_row, 2].scatter(x_data, expected_data.iloc[0][1:],
+                    alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
 
-    # make the legend
-    axs[n_row,0].legend(loc="upper left", markerscale=2)
+        # Make the titles 
+        axs[n_row, 0].title.set_text("{} {}".format(label, subplot_titles[0]))
+        axs[n_row, 1].title.set_text("{} {}".format(label, subplot_titles[1]))
+        axs[n_row, 2].title.set_text("{} {}".format(label, subplot_titles[2]))
+
+        # make the legend
+        axs[n_row,0].legend(loc="upper left", markerscale=2)
+
+    except:
+        axs[0].scatter(x_data, input_data.iloc[0][1:],
+                    alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
+        axs[1].scatter(x_data, output_data.iloc[0][1:],
+                    alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
+        axs[2].scatter(x_data, expected_data.iloc[0][1:],
+                    alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
+
+        # Make the titles 
+        axs[0].title.set_text("{} {}".format(label, subplot_titles[0]))
+        axs[1].title.set_text("{} {}".format(label, subplot_titles[1]))
+        axs[2].title.set_text("{} {}".format(label, subplot_titles[2]))
+
+        # make the legend
+        axs[0].legend(loc="upper left", markerscale=2)
 
 def makeColumnHeaders(n_batch, n_node, memory_size, index_name): 
     """Make the expected headers for the input, output, and expected data files.
@@ -67,7 +85,7 @@ def main(data_dir, data_filename, nodes_filename, index_name, n_epoch, n_batch, 
 
     # make the initial figure
     n_nodes = len(nodes)
-    fig, axs = plt.subplots(n_nodes, 3, sharex=True, sharey=False)
+    fig, axs = plt.subplots(n_nodes, 3, sharex=True, sharey=True)
     print("Preparing the plot...")
 
     # read in the data and anlayze each train/test metric
@@ -107,15 +125,15 @@ def main(data_dir, data_filename, nodes_filename, index_name, n_epoch, n_batch, 
 # Run main
 if __name__ == "__main__":
     # Input files
-    data_dir = ""
+    data_dir = "C:/Users/dmccloskey/Documents/GitHub/EvoNetData/MNIST_examples/HarmonicOscillator/Gpu0-0a/"
     data_filename = data_dir + "TimeCourseFilenames.csv"
     nodes_filename = data_dir + "TimeCourseNodes.csv"
 
     # Input parameters
     index_name = "Epoch"
-    n_epoch = 9000
+    n_epoch = 2000 # 6000 (kinetic)
     n_batch = 0
     #nodes = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
-    nodes = [11, 19, 20, 22]
-    memory_size = 128
+    nodes = [0] # [11, 19, 20, 22] (kinetic)
+    memory_size = 64 # 128 (kinetic)
     main(data_dir, data_filename, nodes_filename, index_name, n_epoch, n_batch, nodes, memory_size)
