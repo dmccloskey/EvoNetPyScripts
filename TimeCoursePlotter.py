@@ -18,16 +18,15 @@ def plotTimeCourse(n_node, memory_size, subplot_titles, input_data, output_data,
         color: the color to use for the plots
         maker: the marker to use for the plots
     """
-    n_cols = len(subplot_titles)
-    x_data = np.arrange(memory_size)
-    label = nodes_to_labels[nodes_to_labels["nodes"]==n_node]["labels"].to_series()[0]
+    x_data = np.arange(memory_size)
+    label = nodes_to_labels[nodes_to_labels["nodes"]==n_node]["labels"]
 
     # Make the subplots
-    axs[n_node, 0].scatter(x_data, input_data.iloc[0],
+    axs[n_node, 0].scatter(x_data, input_data.iloc[0][1:],
                 alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=label)
-    axs[n_node, 1].scatter(x_data, output_data.iloc[0],
+    axs[n_node, 1].scatter(x_data, output_data.iloc[0][1:],
                 alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=label)
-    axs[n_node, 2].scatter(x_data, expected_data.iloc[0],
+    axs[n_node, 2].scatter(x_data, expected_data.iloc[0][1:],
                 alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=label)
     if n_node==0:
         axs[n_node, 0].title.set_text(subplot_titles[0])
@@ -46,9 +45,9 @@ def makeColumnHeaders(n_batch, n_node, memory_size, index_name):
     Returns:
         pandas data frame
     """   
-    input_headers = ["Input_{:012d}_Input_Batch-{}_Memory-{}".format(n_node, n_batch, j) for j in range(0, memory_size)]
-    output_headers = ["Output_{:012d}_Output_Batch-{}_Memory-{}".format(n_node, n_batch, j) for j in range(0, memory_size)]
-    expected_headers = ["Output_{:012d}_Expected_Batch-{}_Memory-{}".format(n_node, n_batch, j) for j in range(0, memory_size)]
+    input_headers = ["Input_{:012d}_Input_Batch-{}_Memory-{}".format(n_node, n_batch, j) for j in range(memory_size)]
+    output_headers = ["Output_{:012d}_Output_Batch-{}_Memory-{}".format(n_node, n_batch, j) for j in range(memory_size)]
+    expected_headers = ["Output_{:012d}_Expected_Batch-{}_Memory-{}".format(n_node, n_batch, j) for j in range(memory_size)]
     input_headers.append(index_name)
     output_headers.append(index_name)
     expected_headers.append(index_name)
@@ -74,12 +73,11 @@ def main(data_dir, data_filename, nodes_filename, index_name, n_epoch, n_batch, 
     color_iter = 0
     for n in range(0, n_nodes):
         # make the expected column headers
-        input_headers, output_headers, expected_headers = makeColumnHeaders(index_name, n_batch, n, memory_size) 
+        input_headers, output_headers, expected_headers = makeColumnHeaders(n_batch, n, memory_size, index_name)
 
         for series in range(0,len(filenames)):
             # read in and trim the data
             input_data = pd.read_csv(filenames['input_filenames'][series], usecols = input_headers, dtype=np.float32)
-            print(len(input_data))
             input_data = input_data[input_data[index_name]==n_epoch] # filter on epoch
             output_data = pd.read_csv(filenames["output_filenames"][series], usecols = output_headers, dtype=np.float32)
             output_data = output_data[output_data[index_name]==n_epoch] # filter on epoch
@@ -105,7 +103,7 @@ def main(data_dir, data_filename, nodes_filename, index_name, n_epoch, n_batch, 
 # Run main
 if __name__ == "__main__":
     # Input files
-    data_dir = ""
+    data_dir = "C:/Users/dmccloskey/Documents/GitHub/EvoNetData/MNIST_examples/KineticModel/Gpu0-0a/"
     data_filename = data_dir + "TimeCourseFilenames.csv"
     nodes_filename = data_dir + "TimeCourseNodes.csv"
 
