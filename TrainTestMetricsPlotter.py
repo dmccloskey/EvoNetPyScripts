@@ -117,9 +117,9 @@ def main(data_dir, data_filename, headers_filename, index_name, n_rows, display_
     # make the empty data frame for the aggregate statistics
     flat_headers = [item for sublist in headers for item in sublist]
     custom_headers = [item + "_itersToValue" for item in flat_headers]
-    flat_headers.extend(custom_headers)
-    flat_headers.insert(0, "label")
-    agg_stats = pd.DataFrame(columns=flat_headers)
+    custom_headers.extend(flat_headers)
+    custom_headers.insert(0, "label")
+    agg_stats = pd.DataFrame(columns=custom_headers)
 
     # make the initial figure
     n_metric_pairs = len(headers)
@@ -134,7 +134,7 @@ def main(data_dir, data_filename, headers_filename, index_name, n_rows, display_
     color_iter = 0
     for n in range(0, n_data):
         # trim the data
-        data = pd.read_csv(filenames[n], dtype=np.float32).iloc[:n_rows,:]
+        data = pd.read_csv(filenames[n], usecols=flat_headers, dtype=np.float32).iloc[:n_rows,:]
 
         # plot each train/test metric
         if display_plot:
@@ -169,5 +169,5 @@ if __name__ == "__main__":
     headers_filename = data_dir + "TrainTestMetricsHeaders.csv"
 
     # Name of the index
-    index_name = "Epoch"; n_rows = 90000
+    index_name = "Epoch"; n_rows = 100000
     main(data_dir, data_filename, headers_filename, index_name, n_rows, False)
