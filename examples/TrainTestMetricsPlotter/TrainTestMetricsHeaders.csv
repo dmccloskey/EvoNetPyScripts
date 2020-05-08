@@ -1,0 +1,16 @@
+train_headers,test_headers,agg_funcs,used_
+Training_Train_Error,Validation_Test_Error,min,TRUE
+Training_CosineSimilarity-Mean,Validation_CosineSimilarity-Mean,max,TRUE
+Training_CosineSimilarity-Var,Validation_CosineSimilarity-Var,min,TRUE
+Training_PearsonR-Mean,Validation_PearsonR-Mean,max,TRUE
+Training_PearsonR-Var,Validation_PearsonR-Var,min,TRUE
+Training_EuclideanDist-Mean,Validation_EuclideanDist-Mean,min,TRUE
+Training_EuclideanDist-Var,Validation_EuclideanDist-Var,min,TRUE
+Training_ManhattanDist-Mean,Validation_ManhattanDist-Mean,min,TRUE
+Training_ManhattanDist-Var,Validation_ManhattanDist-Var,min,TRUE
+Training_JeffreysAndMatusitaDist-Mean,Validation_JeffreysAndMatusitaDist-Mean,min,TRUE
+Training_JeffreysAndMatusitaDist-Var,Validation_JeffreysAndMatusitaDist-Var,min,TRUE
+Training_LogarithmicDist-Mean,Validation_LogarithmicDist-Mean,min,TRUE
+Training_LogarithmicDist-Var,Validation_LogarithmicDist-Var,min,TRUE
+Training_PercentDifference-Mean,Validation_PercentDifference-Mean,min,TRUE
+Training_PercentDifference-Var,Validation_PercentDifference-Var,min,TRUE

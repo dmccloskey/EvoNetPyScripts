@@ -1,0 +1,5 @@
+filenames,merged_names,used_
+VAE*_ExpectedPerEpoch.csv,VAE_ExpectedPerEpoch_merged.csv,FALSE
+VAE*_NodeInputsPerEpoch.csv,VAE_NodeInputsPerEpoch_merged.csv,FALSE
+VAE*_TimePerEpoch.csv,VAE_TimePerEpoch_merged.csv,FALSE
+VAE*_TrainValMetricsPerEpoch.csv,VAE_TrainValMetricsPerEpoch_merged.csv,TRUE
