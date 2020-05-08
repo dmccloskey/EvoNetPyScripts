@@ -96,21 +96,21 @@ def main(data_dir, data_filename, nodes_filename, index_name, nodes, memory_size
     color_iter = 0
     for n_row, n in enumerate(nodes):
         print("adding node {}...".format(n))
-        for series in range(0,len(filenames)):
+        for index, row in filenames.iterrows():
             # make the expected column headers
-            input_headers, output_headers, expected_headers = makeColumnHeaders(filenames['n_batch'][series], n, memory_size, index_name)
+            input_headers, output_headers, expected_headers = makeColumnHeaders(row['n_batch'], n, memory_size, index_name)
 
             # read in and trim the data
-            input_data = pd.read_csv(filenames['input_filenames'][series], usecols = input_headers, dtype=np.float32)
-            input_data = input_data[input_data[index_name]==filenames['n_epoch'][series]] # filter on epoch
-            output_data = pd.read_csv(filenames["output_filenames"][series], usecols = output_headers, dtype=np.float32)
-            output_data = output_data[output_data[index_name]==filenames['n_epoch'][series]] # filter on epoch
-            expected_data = pd.read_csv(filenames["expected_filenames"][series], usecols = expected_headers, dtype=np.float32)
-            expected_data = expected_data[expected_data[index_name]==filenames['n_epoch'][series]] # filter on epoch
+            input_data = pd.read_csv(row['input_filenames'], usecols = input_headers, dtype=np.float32)
+            input_data = input_data[input_data[index_name]==row['n_epoch']] # filter on epoch
+            output_data = pd.read_csv(row["output_filenames"], usecols = output_headers, dtype=np.float32)
+            output_data = output_data[output_data[index_name]==row['n_epoch']] # filter on epoch
+            expected_data = pd.read_csv(row["expected_filenames"], usecols = expected_headers, dtype=np.float32)
+            expected_data = expected_data[expected_data[index_name]==row['n_epoch']] # filter on epoch
 
             # plot each node time-course
             plotTimeCourse(n, n_row, memory_size, subplot_titles, input_data, output_data, expected_data, nodes_to_labels,
-                            axs, all_colors[color_iter], all_markers[marker_iter], filenames['series'][series])
+                            axs, all_colors[color_iter], all_markers[marker_iter], row['series'])
             color_iter += 1
             if color_iter >= len(all_colors):
                 color_iter = 0;
