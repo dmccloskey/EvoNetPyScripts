@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
-def plotTimeCourse(n_node, n_row, memory_size, subplot_titles, input_data, output_data, expected_data, nodes_to_labels, axs, color, marker, series):
+def plotTimeCourse(n_node, n_row, memory_size, subplot_titles, input_data, output_data, expected_data, label, axs, color, marker, series):
     """Generate a side by side plot of the input node values, output node values, and expected output node values.
     Each figure is of a single train/text batch.
     Each panel is of a single node.
@@ -19,7 +19,6 @@ def plotTimeCourse(n_node, n_row, memory_size, subplot_titles, input_data, outpu
         maker: the marker to use for the plots
     """
     x_data = np.arange(memory_size)
-    label = nodes_to_labels[nodes_to_labels["nodes"]==n_node]["labels"][n_node]
 
     # Make the subplots
     try:
@@ -74,7 +73,7 @@ def makeColumnHeaders(n_batch, n_node, memory_size, index_name):
     expected_headers.append(index_name)
     return input_headers, output_headers, expected_headers
 
-def main(data_dir, data_filename, nodes_filename, index_name, nodes, memory_size):
+def main(data_dir, data_filename, nodes_filename, index_name):
     """Run main script"""
 
     # read in the input files
@@ -83,9 +82,12 @@ def main(data_dir, data_filename, nodes_filename, index_name, nodes, memory_size
     nodes_to_labels = pd.read_csv(nodes_filename)
     nodes_to_labels = nodes_to_labels[nodes_to_labels["used_"]==True] # filter on used
 
+    # extract the memory size
+    memory_size = np.min(filenames["memory_sizes"].to_numpy())
+
     # make the initial figure
-    n_nodes = len(nodes)
-    fig, axs = plt.subplots(n_nodes, 3, sharex=True, sharey=True)
+    n_nodes = len(nodes_to_labels)
+    fig, axs = plt.subplots(n_nodes, 3, sharex=True, sharey=False)
     print("Preparing the plot...")
 
     # read in the data and anlayze each train/test metric
@@ -94,11 +96,11 @@ def main(data_dir, data_filename, nodes_filename, index_name, nodes, memory_size
     subplot_titles = ["Input", "Output", "Expected"]
     marker_iter = 0
     color_iter = 0
-    for n_row, n in enumerate(nodes):
-        print("adding node {}...".format(n))
+    for n_row in range(len(nodes_to_labels)):
+        print("adding node {}...".format(nodes_to_labels.iloc[n_row].loc["nodes"]))
         for index, row in filenames.iterrows():
             # make the expected column headers
-            input_headers, output_headers, expected_headers = makeColumnHeaders(row['n_batch'], n, memory_size, index_name)
+            input_headers, output_headers, expected_headers = makeColumnHeaders(row['n_batch'], nodes_to_labels.iloc[n_row].loc["nodes"], memory_size, index_name)
 
             # read in and trim the data
             input_data = pd.read_csv(row['input_filenames'], usecols = input_headers, dtype=np.float32)
@@ -109,7 +111,7 @@ def main(data_dir, data_filename, nodes_filename, index_name, nodes, memory_size
             expected_data = expected_data[expected_data[index_name]==row['n_epoch']] # filter on epoch
 
             # plot each node time-course
-            plotTimeCourse(n, n_row, memory_size, subplot_titles, input_data, output_data, expected_data, nodes_to_labels,
+            plotTimeCourse(nodes_to_labels.iloc[n_row].loc["nodes"], n_row, memory_size, subplot_titles, input_data, output_data, expected_data, nodes_to_labels.iloc[n_row].loc["labels"],
                             axs, all_colors[color_iter], all_markers[marker_iter], row['series'])
             color_iter += 1
             if color_iter >= len(all_colors):
@@ -131,7 +133,4 @@ if __name__ == "__main__":
 
     # Input parameters
     index_name = "Epoch"
-    #nodes = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
-    nodes = [0] # [11, 19, 20, 22] (kinetic)
-    memory_size = 64 # 128 (kinetic)
-    main(data_dir, data_filename, nodes_filename, index_name, nodes, memory_size)
+    main(data_dir, data_filename, nodes_filename, index_name)
