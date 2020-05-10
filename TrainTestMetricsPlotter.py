@@ -16,18 +16,26 @@ def plotTrainTest(index_name, headers, data, axs, color, marker, label):
     n_metric_pairs = len(headers)
     data_downsampled = data.iloc[::2] # down sample by 1/2
     for n in range(0,n_metric_pairs):
-        if n==0:
-            axs[n, 0].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][0]],
-                       alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=label)
-            axs[n, 0].title.set_text("Train")
-            axs[n, 1].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][1]],
-                       alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=label)
-            axs[n, 1].title.set_text("Test")
-        else:
-            axs[n, 0].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][0]],
-                       alpha=0.5, c=color, marker=marker, edgecolors='none', s=20)
-            axs[n, 1].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][1]],
-                       alpha=0.5, c=color, marker=marker, edgecolors='none', s=20)
+        try:
+            if n==0:
+                axs[n, 0].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][0]],
+                           alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=label)
+                axs[n, 0].title.set_text("Train")
+                axs[n, 1].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][1]],
+                           alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=label)
+                axs[n, 1].title.set_text("Test")
+            else:
+                axs[n, 0].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][0]],
+                           alpha=0.5, c=color, marker=marker, edgecolors='none', s=20)
+                axs[n, 1].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][1]],
+                           alpha=0.5, c=color, marker=marker, edgecolors='none', s=20)
+        except:
+            axs[0].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][0]],
+                        alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=label)
+            axs[0].title.set_text("Train")
+            axs[1].scatter(data_downsampled.loc[:, index_name],  data_downsampled.loc[:, headers[n][1]],
+                        alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=label)
+            axs[1].title.set_text("Test")
 
 def aggregateTrainTestStats(headers, agg_funcs, index_name, data, label, n_agg_values = 10):
     """Creates a pandas data frame with headers according to headers
@@ -120,11 +128,13 @@ def main(data_dir, data_filename, headers_filename, index_name, n_rows, display_
     custom_headers.extend(flat_headers)
     custom_headers.insert(0, "label")
     agg_stats = pd.DataFrame(columns=custom_headers)
+    flat_headers.insert(0, index_name)
 
     # make the initial figure
     n_metric_pairs = len(headers)
     n_data = len(filenames)
     if display_plot:
+        print("Preparing the plot...")
         fig, axs = plt.subplots(n_metric_pairs, 2, sharex=True, sharey=False)
 
     # read in the data and anlayze each train/test metric
@@ -133,11 +143,13 @@ def main(data_dir, data_filename, headers_filename, index_name, n_rows, display_
     marker_iter = 0
     color_iter = 0
     for n in range(0, n_data):
+        Print("processing data {}...".format(n))
         # trim the data
         data = pd.read_csv(filenames[n], usecols=flat_headers, dtype=np.float32).iloc[:n_rows,:]
 
         # plot each train/test metric
         if display_plot:
+            Print("Adding data for {} to the plot...".format(n))
             plotTrainTest(index_name, headers, data, 
                           axs, all_colors[color_iter], all_markers[marker_iter], labels[n])
             color_iter += 1
@@ -148,15 +160,21 @@ def main(data_dir, data_filename, headers_filename, index_name, n_rows, display_
                     marker_iter = 0
 
         # calculate the aggregate statistics
+        Print("Aggregating statistics for {}...".format(n))
         row_data = aggregateTrainTestStats(headers, agg_funcs, index_name, data, labels[n])
         agg_stats = agg_stats.append(row_data, ignore_index=True)
 
     # store the aggregate statistics
+    Print("Storing aggregate statistics...")
     agg_stats.to_csv(data_dir + "TrainTestMetrics.csv")
 
     if display_plot:
+        Print("Displaying the plot...")
         # make the legend
-        axs[0,0].legend(loc="upper left", markerscale=2)
+        try:
+            axs[0,0].legend(loc="upper left", markerscale=2)
+        except:            
+            axs[0].legend(loc="upper left", markerscale=2)
 
         # show the image
         plt.show()
@@ -169,5 +187,5 @@ if __name__ == "__main__":
     headers_filename = data_dir + "TrainTestMetricsHeaders.csv"
 
     # Name of the index
-    index_name = "Epoch"; n_rows = 100000
-    main(data_dir, data_filename, headers_filename, index_name, n_rows, False)
+    index_name = "Epoch"; n_rows = 100000; show_plot = True;
+    main(data_dir, data_filename, headers_filename, index_name, n_rows, show_plot)
