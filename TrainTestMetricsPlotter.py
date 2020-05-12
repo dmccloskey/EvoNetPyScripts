@@ -143,13 +143,13 @@ def main(data_dir, data_filename, headers_filename, index_name, n_rows, display_
     marker_iter = 0
     color_iter = 0
     for n in range(0, n_data):
-        Print("processing data {}...".format(n))
+        print("processing data {}...".format(n))
         # trim the data
         data = pd.read_csv(filenames[n], usecols=flat_headers, dtype=np.float32).iloc[:n_rows,:]
 
         # plot each train/test metric
         if display_plot:
-            Print("Adding data for {} to the plot...".format(n))
+            print("Adding data for {} to the plot...".format(n))
             plotTrainTest(index_name, headers, data, 
                           axs, all_colors[color_iter], all_markers[marker_iter], labels[n])
             color_iter += 1
@@ -160,16 +160,16 @@ def main(data_dir, data_filename, headers_filename, index_name, n_rows, display_
                     marker_iter = 0
 
         # calculate the aggregate statistics
-        Print("Aggregating statistics for {}...".format(n))
+        print("Aggregating statistics for {}...".format(n))
         row_data = aggregateTrainTestStats(headers, agg_funcs, index_name, data, labels[n])
         agg_stats = agg_stats.append(row_data, ignore_index=True)
 
     # store the aggregate statistics
-    Print("Storing aggregate statistics...")
+    print("Storing aggregate statistics...")
     agg_stats.to_csv(data_dir + "TrainTestMetrics.csv")
 
     if display_plot:
-        Print("Displaying the plot...")
+        print("Displaying the plot...")
         # make the legend
         try:
             axs[0,0].legend(loc="upper left", markerscale=2)

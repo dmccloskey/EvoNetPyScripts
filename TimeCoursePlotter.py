@@ -87,7 +87,7 @@ def main(data_dir, data_filename, nodes_filename, index_name):
 
     # make the initial figure
     n_nodes = len(nodes_to_labels)
-    fig, axs = plt.subplots(n_nodes, 3, sharex=True, sharey=False)
+    fig, axs = plt.subplots(n_nodes, 3, sharex=True, sharey=True)
     print("Preparing the plot...")
 
     # read in the data and anlayze each train/test metric
