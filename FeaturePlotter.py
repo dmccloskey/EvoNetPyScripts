@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
-def plotTimeCourse(n_node, n_row, memory_size, sequence_length, subplot_titles, input_data, output_data, expected_data, label, axs, color, marker, series):
+def plotFeature(n_row, feature_length, subplot_titles, input_data, output_data, expected_data, label, axs, color, marker, series):
     """Generate a side by side plot of the input node values, output node values, and expected output node values.
     Each figure is of a single train/text batch.
     Each panel is of a single node.
@@ -18,7 +18,7 @@ def plotTimeCourse(n_node, n_row, memory_size, sequence_length, subplot_titles, 
         color: the color to use for the plots
         maker: the marker to use for the plots
     """
-    x_data = np.arange(sequence_length-1, sequence_length - memory_size, -1)
+    x_data = np.arange(0, feature_length)
 
     # Make the subplots
     try:
@@ -53,7 +53,7 @@ def plotTimeCourse(n_node, n_row, memory_size, sequence_length, subplot_titles, 
         # make the legend
         axs[0].legend(loc="upper left", markerscale=2)
 
-def makeColumnHeaders(n_batch, n_node, memory_size, sequence_length, index_name): 
+def makeColumnHeaders(input, output, n_batch, feature_start, feature_length, index_name): 
     """Make the expected headers for the input, output, and expected data files.
     The sequence is generated downwards to match the memory steps.
 
@@ -66,9 +66,9 @@ def makeColumnHeaders(n_batch, n_node, memory_size, sequence_length, index_name)
     Returns:
         pandas data frame
     """   
-    input_headers = ["Input_{:012d}_Input_Batch-{}_Memory-{}".format(n_node, n_batch, j) for j in range(sequence_length-1, sequence_length - memory_size, -1)]
-    output_headers = ["Output_{:012d}_Output_Batch-{}_Memory-{}".format(n_node, n_batch, j) for j in range(sequence_length-1, sequence_length - memory_size, -1)]
-    expected_headers = ["Output_{:012d}_Expected_Batch-{}_Memory-{}".format(n_node, n_batch, j) for j in range(sequence_length-1, sequence_length - memory_size, -1)]
+    input_headers = ["{}_{:012d}_Input_Batch-{}_Memory-0".format(input, j, n_batch) for j in range(feature_start, feature_length)]
+    output_headers = ["{}_{:012d}_Output_Batch-{}_Memory-0".format(output, j, n_batch) for j in range(feature_start, feature_length)]
+    expected_headers = ["{}_{:012d}_Expected_Batch-{}_Memory-0".format(output, j, n_batch) for j in range(feature_start, feature_length)]
     input_headers.append(index_name)
     output_headers.append(index_name)
     expected_headers.append(index_name)
@@ -83,10 +83,6 @@ def main(data_dir, data_filename, nodes_filename, index_name):
     nodes_to_labels = pd.read_csv(nodes_filename)
     nodes_to_labels = nodes_to_labels[nodes_to_labels["used_"]==True] # filter on used
 
-    # extract the memory size
-    memory_size = np.min(filenames["memory_sizes"].to_numpy())
-    sequence_length = np.min(filenames["sequence_length"].to_numpy())
-
     # make the initial figure
     n_nodes = len(nodes_to_labels)
     fig, axs = plt.subplots(n_nodes, 3, sharex=True, sharey=False)
@@ -99,10 +95,10 @@ def main(data_dir, data_filename, nodes_filename, index_name):
     marker_iter = 0
     color_iter = 0
     for n_row in range(len(nodes_to_labels)):
-        print("adding node {}...".format(nodes_to_labels.iloc[n_row].loc["nodes"]))
+        print("adding feature {}...".format(nodes_to_labels.iloc[n_row].loc["labels"]))
         for index, row in filenames.iterrows():
             # make the expected column headers
-            input_headers, output_headers, expected_headers = makeColumnHeaders(row['n_batch'], nodes_to_labels.iloc[n_row].loc["nodes"], memory_size, sequence_length, index_name)
+            input_headers, output_headers, expected_headers = makeColumnHeaders(nodes_to_labels.iloc[n_row].loc["input"], nodes_to_labels.iloc[n_row].loc["output"], row['n_batch'], nodes_to_labels.iloc[n_row].loc["start"], nodes_to_labels.iloc[n_row].loc["span"], index_name)
 
             # read in and trim the data
             input_data = pd.read_csv(row['input_filenames'], usecols = input_headers, dtype=np.float32)
@@ -113,7 +109,7 @@ def main(data_dir, data_filename, nodes_filename, index_name):
             expected_data = expected_data[expected_data[index_name]==row['n_epoch']] # filter on epoch
 
             # plot each node time-course
-            plotTimeCourse(nodes_to_labels.iloc[n_row].loc["nodes"], n_row, memory_size, sequence_length, subplot_titles, input_data, output_data, expected_data, nodes_to_labels.iloc[n_row].loc["labels"],
+            plotFeature(n_row, nodes_to_labels.iloc[n_row].loc["span"], subplot_titles, input_data, output_data, expected_data, nodes_to_labels.iloc[n_row].loc["labels"],
                             axs, all_colors[color_iter], all_markers[marker_iter], row['series'])
             color_iter += 1
             if color_iter >= len(all_colors):
@@ -130,8 +126,8 @@ def main(data_dir, data_filename, nodes_filename, index_name):
 if __name__ == "__main__":
     # Input files
     data_dir = ""
-    data_filename = data_dir + "TimeCourseFilenames.csv"
-    nodes_filename = data_dir + "TimeCourseNodes.csv"
+    data_filename = data_dir + "FeatureFilenames.csv"
+    nodes_filename = data_dir + "FeatureNodes.csv"
 
     # Input parameters
     index_name = "Epoch"
