@@ -19,14 +19,18 @@ def plotFeature(n_row, feature_length, subplot_titles, input_data, output_data, 
         maker: the marker to use for the plots
     """
     x_data = np.arange(0, feature_length)
+    # Normalised [0,1] np.ptp(a[np.isfinite(a)])
+    input_plot = (input_data.iloc[0][1:] - np.min(input_data.iloc[0][1:]))/np.ptp(input_data.iloc[0][1:])
+    output_plot = (output_data.iloc[0][1:] - np.min(output_data.iloc[0][1:]))/np.ptp(output_data.iloc[0][1:])
+    expected_plot = (expected_data.iloc[0][1:] - np.min(expected_data.iloc[0][1:]))/np.ptp(expected_data.iloc[0][1:])
 
     # Make the subplots
     try:
-        axs[n_row, 0].scatter(x_data, input_data.iloc[0][1:],
+        axs[n_row, 0].scatter(x_data, input_plot,
                     alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
-        axs[n_row, 1].scatter(x_data, output_data.iloc[0][1:],
+        axs[n_row, 1].scatter(x_data, output_plot,
                     alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
-        axs[n_row, 2].scatter(x_data, expected_data.iloc[0][1:],
+        axs[n_row, 2].scatter(x_data, expected_plot,
                     alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
 
         # Make the titles 
@@ -38,11 +42,11 @@ def plotFeature(n_row, feature_length, subplot_titles, input_data, output_data, 
         axs[n_row,0].legend(loc="upper left", markerscale=2)
 
     except:
-        axs[0].scatter(x_data, input_data.iloc[0][1:],
+        axs[0].scatter(x_data, input_plot,
                     alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
-        axs[1].scatter(x_data, output_data.iloc[0][1:],
+        axs[1].scatter(x_data, output_plot,
                     alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
-        axs[2].scatter(x_data, expected_data.iloc[0][1:],
+        axs[2].scatter(x_data, expected_plot,
                     alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
 
         # Make the titles 
