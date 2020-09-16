@@ -25,11 +25,21 @@ def main(data_dir, filename):
     # read in the input files
     commands = readCommandsCsv(filename)
 
-    # make the empty data frame for the aggregate statistics
-    DETACHED_PROCESS = 0x00000008
-    procs = [ Popen(i, creationflags=DETACHED_PROCESS, shell=True) for i in commands ]
-    for p in procs:
-        p.wait()
+    # Run in parallel
+    n_threads = 4
+    thread_count = 0
+    commands_to_run = []
+    for command in commands:
+        if thread_count < n_threads:
+            commands_to_run.append(command)
+            thread_count += 1
+        if thread_count >= n_threads or command == commands[-1]:
+            DETACHED_PROCESS = 0x00000008
+            procs = [ Popen(i, creationflags=DETACHED_PROCESS, shell=True) for i in commands_to_run ]
+            for p in procs:
+                p.wait()
+            commands_to_run = []
+            thread_count = 0
 
 # Run main
 if __name__ == "__main__":

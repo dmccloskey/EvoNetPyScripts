@@ -20,7 +20,8 @@ def plotFeature(n_row, feature_length, subplot_titles, input_data, output_data, 
     """
     x_data = np.arange(0, feature_length)
     # Normalised [0,1] np.ptp(a[np.isfinite(a)])
-    input_plot = (input_data.iloc[0][1:] - np.min(input_data.iloc[0][1:]))/np.ptp(input_data.iloc[0][1:])
+    #input_plot = (input_data.iloc[0][1:] - np.min(input_data.iloc[0][1:]))/np.ptp(input_data.iloc[0][1:])
+    input_plot = input_data.iloc[0][1:]
     output_plot = (output_data.iloc[0][1:] - np.min(output_data.iloc[0][1:]))/np.ptp(output_data.iloc[0][1:])
     expected_plot = (expected_data.iloc[0][1:] - np.min(expected_data.iloc[0][1:]))/np.ptp(expected_data.iloc[0][1:])
 
@@ -44,15 +45,15 @@ def plotFeature(n_row, feature_length, subplot_titles, input_data, output_data, 
     except:
         axs[0].scatter(x_data, input_plot,
                     alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
-        axs[1].scatter(x_data, output_plot,
-                    alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
-        axs[2].scatter(x_data, expected_plot,
-                    alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
+        #axs[1].scatter(x_data, output_plot,
+        #            alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
+        #axs[2].scatter(x_data, expected_plot,
+        #            alpha=0.5, c=color, marker=marker, edgecolors='none', s=20, label=series)
 
         # Make the titles 
         axs[0].title.set_text("{} {}".format(label, subplot_titles[0]))
-        axs[1].title.set_text("{} {}".format(label, subplot_titles[1]))
-        axs[2].title.set_text("{} {}".format(label, subplot_titles[2]))
+        #axs[1].title.set_text("{} {}".format(label, subplot_titles[1]))
+        #axs[2].title.set_text("{} {}".format(label, subplot_titles[2]))
 
         # make the legend
         axs[0].legend(loc="upper left", markerscale=2)
@@ -71,8 +72,10 @@ def makeColumnHeaders(input, output, n_batch, feature_start, feature_length, ind
         pandas data frame
     """   
     input_headers = ["{}_{:012d}_Input_Batch-{}_Memory-0".format(input, j, n_batch) for j in range(feature_start, feature_length)]
-    output_headers = ["{}_{:012d}_Output_Batch-{}_Memory-0".format(output, j, n_batch) for j in range(feature_start, feature_length)]
-    expected_headers = ["{}_{:012d}_Expected_Batch-{}_Memory-0".format(output, j, n_batch) for j in range(feature_start, feature_length)]
+    #output_headers = ["{}_{:012d}_Output_Batch-{}_Memory-0".format(output, j, n_batch) for j in range(feature_start, feature_length)]
+    #expected_headers = ["{}_{:012d}_Expected_Batch-{}_Memory-0".format(output, j, n_batch) for j in range(feature_start, feature_length)]
+    output_headers = ["{}_{:012d}_Output_Batch-{}_Memory-0".format(output, j, n_batch) for j in range(feature_start, 4)]
+    expected_headers = ["{}_{:012d}_Expected_Batch-{}_Memory-0".format(output, j, n_batch) for j in range(feature_start, 4)]
     input_headers.append(index_name)
     output_headers.append(index_name)
     expected_headers.append(index_name)

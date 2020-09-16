@@ -81,6 +81,8 @@ def main(filename_input, filename_output, input_headers, output_headers):
 if __name__ == "__main__":
     filename_input = "C:/Users/dmccloskey/Documents/GitHub/EvoNetData/MNIST_examples/CVAE/Gpu0-2c/CVAEDecoder_NodeInputsPerEpoch.csv"
     filename_output = "C:/Users/dmccloskey/Documents/GitHub/EvoNetData/MNIST_examples/CVAE/Gpu0-2c/CVAEDecoder_NodeOutputsPerEpoch.csv"
+    # filename_input = "C:/Users/dmccloskey/Documents/GitHub/EvoNetData/MNIST_examples/CVAE/Gpu3-0a/CVAEDecoder_NodeInputsPerEpoch.csv"
+    # filename_output = "C:/Users/dmccloskey/Documents/GitHub/EvoNetData/MNIST_examples/CVAE/Gpu3-0a/CVAEDecoder_NodeOutputsPerEpoch.csv"
     input_headers = []
     output_headers = []
     for batch in range(0, 8):
