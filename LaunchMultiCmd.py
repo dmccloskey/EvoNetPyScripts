@@ -26,7 +26,7 @@ def main(data_dir, filename):
     commands = readCommandsCsv(filename)
 
     # Run in parallel
-    n_threads = 4
+    n_threads = 3
     thread_count = 0
     commands_to_run = []
     for command in commands:
