@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
-def aggregateCategoryLabel(thresholds, categories, index_name, data, label, n_agg_values = 10):
+def aggregateCategoryLabel(headers, traversals, index_name, data, label, agg_stats):
     """Creates a pandas data frame with headers according to headers
     and row labels according to labels where the column data from the
     specified header is aggregated according to the specified aggregation function.
@@ -10,7 +10,7 @@ def aggregateCategoryLabel(thresholds, categories, index_name, data, label, n_ag
     100 times is also reported.
 
     Args:
-        headers: dataframe of train/test metrics to filter the data by based on the thresholds column
+        headers: dataframe of train/test metrics to use to identify the min or max point
         categories: dataframe of mapping from index to the category, label, and input
         index_name: name of the index header
         data: the actual data frame of values to aggregate according to the specified statistics
@@ -18,22 +18,23 @@ def aggregateCategoryLabel(thresholds, categories, index_name, data, label, n_ag
     Returns:
         dataframe
     """
-    row_data = {"label":label}
 
-    # iteratively filter the data
-    df_filtered = data
-    for index, row in thresholds.iterrows():
-        # filter the data
-        df_filtered = df_filtered[df_filtered[row['headers']]>row['thresholds']]
-
-    # use the data index to filter the categories
-    categories_filtered = categories[categories['index'].isin(df_filtered[index_name])]
-    categories_filtered = pd.concat([categories_filtered, df_filtered], axis=1, join='outer')
-
-    # add in the labels as a new column
-    categories_filtered.insert(0, "label", label)
-    categories_filtered.drop(columns=['used_', 'index'], axis=1)
-    return categories_filtered
+    unique_input = list(set(traversals['input']))
+    unique_input.sort()
+    for index, row in headers.iterrows():
+        for input in unique_input:
+            traversals_input = traversals[traversals['input']==input]
+            data_subset = data[data[index_name].isin(traversals_input['index'])]
+            if row['min_or_max'] == 'min':
+                data_subset = data_subset[data_subset[row['headers']] == data_subset[row['headers']].min()]
+            else:
+                data_subset = data_subset[data_subset[row['headers']] == data_subset[row['headers']].max()]
+            traversals_filtered = traversals_input[traversals_input['index'] == data_subset[index_name].iloc[0]]
+            traversals_filtered.insert(0, "metric_value", data_subset[row['headers']])
+            traversals_filtered.insert(0, "metric_name", row['headers'])
+            traversals_filtered.insert(0, "label", label) 
+            agg_stats = agg_stats.append(traversals_filtered, ignore_index=True)
+    return agg_stats
 
 def readDataFilenamesCsv(filename):
     """Creates a pandas data frame with headers for 'filenames','labels','color','marker'
@@ -50,11 +51,10 @@ def readDataFilenamesCsv(filename):
     data_used = data[data["used_"]==True]
     filenames = list(data_used.loc[:, "filenames"]) 
     labels = list(data_used.loc[:, "labels"])
-    #filenames, labels, colors, markers = data_used.loc[:, "filenames"], data_used.loc[:, "labels"], data_used.loc[:, "colors"], data_used.loc[:, "markers"]
     return filenames, labels
 
 def readDataHeaders(filename):
-    """Creates a pandas data frame with headers for 'headers','thresholds'
+    """Creates a pandas data frame with headers for 'headers','min_or_max'
     from a .csv file and returns each of the columns as seperate entities.  The column 'used_' is
     used to select what rows to use
 
@@ -62,14 +62,14 @@ def readDataHeaders(filename):
         filename: name of the file
 
     Returns:
-        pandas data frame with headers for 'headers','thresholds'
+        pandas data frame with headers for 'headers','min_or_max'
     """
     data = pd.read_csv(filename)
     data_used = data[data["used_"]==True]
     return data_used
 
-def readCategoryLabel(filename):
-    """Creates a pandas data frame with headers for 'category','predicted','input','index'
+def readLatentTraversalSteps(filename):
+    """Creates a pandas data frame with headers for 'step','gaussian_node','categorical_node','input','index'
     from a .csv file and returns each of the columns as seperate entities.  The column 'used_' is
     used to select what rows to use
 
@@ -77,25 +77,24 @@ def readCategoryLabel(filename):
         filename: name of the file
 
     Returns:
-        pandas data frame with headers for 'category','predicted','input'
+        pandas data frame with headers for 'step','gaussian_node','categorical_node','input','index'
     """
     data = pd.read_csv(filename)
     data_used = data[data["used_"]==True]
     return data_used
 
-def main(data_dir, data_filename, headers_filename, categories_filename, index_name, n_rows):
+def main(data_dir, data_filename, headers_filename, traversals_filename, index_name, n_rows):
     """Run main script"""
 
     # read in the input files
     filenames, labels = readDataFilenamesCsv(data_filename)
     headers = readDataHeaders(headers_filename)
-    categories = readCategoryLabel(categories_filename)
+    traversals = readLatentTraversalSteps(traversals_filename)
 
     # make the empty data frame for the aggregate statistics
     flat_headers = list(headers.loc[:, "headers"])
     flat_headers.insert(0, index_name)
-    columns_custom = ["label", "category", "predicted", "input"]
-    columns_custom = columns_custom + flat_headers
+    columns_custom = ['label', 'step','gaussian_node','categorical_node','input','index','metric_value','metric_name']
     agg_stats = pd.DataFrame(columns=columns_custom)
 
     # make the initial figure
@@ -109,21 +108,20 @@ def main(data_dir, data_filename, headers_filename, categories_filename, index_n
 
         # calculate the aggregate statistics
         print("Aggregating statistics for {}...".format(n))
-        row_data = aggregateCategoryLabel(headers, categories, index_name, data, labels[n])
-        agg_stats = agg_stats.append(row_data, ignore_index=True)
+        agg_stats = aggregateCategoryLabel(headers, traversals, index_name, data, labels[n], agg_stats)
 
     # store the aggregate statistics
     print("Storing aggregate statistics...")
-    agg_stats.to_csv(data_dir + "LatentUnsClass.csv")
+    agg_stats.to_csv(data_dir + "LatentTraversal.csv")
 
 # Run main
 if __name__ == "__main__":
     # Input files
     data_dir = ""
-    data_filename = data_dir + "LatentUnsClassInput.csv"
-    headers_filename = data_dir + "LatentUnsClassHeaders.csv"
-    categories_filename = data_dir + "LatentUnsClassCategories.csv"
+    data_filename = data_dir + "LatentTraversalInput.csv"
+    headers_filename = data_dir + "LatentTraversalHeaders.csv"
+    traversals_filename = data_dir + "LatentTraversalSteps.csv"
 
     # Name of the index
     index_name = "Epoch"; n_rows = 100000;
-    main(data_dir, data_filename, headers_filename, categories_filename, index_name, n_rows)
+    main(data_dir, data_filename, headers_filename, traversals_filename, index_name, n_rows)

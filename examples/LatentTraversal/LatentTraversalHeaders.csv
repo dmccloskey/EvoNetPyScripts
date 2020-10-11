@@ -1,0 +1,7 @@
+headers,min_or_max,used_
+Training_EuclideanDist-Mean,min,TRUE
+Training_ManhattanDist-Mean,min,TRUE
+Training_PercentDifference-Mean,min,TRUE
+Validation_EuclideanDist-Mean,min,TRUE
+Validation_ManhattanDist-Mean,min,TRUE
+Validation_PercentDifference-Mean,min,TRUE
