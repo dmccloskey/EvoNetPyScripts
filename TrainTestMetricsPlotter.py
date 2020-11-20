@@ -187,5 +187,9 @@ if __name__ == "__main__":
     headers_filename = data_dir + "TrainTestMetricsHeaders.csv"
 
     # Name of the index
-    index_name = "Epoch"; n_rows = 100000; show_plot = True;
+    index_name = "Epoch"
+    #n_rows = 100000
+    n_rows = 200000
+    #show_plot = True
+    show_plot = False
     main(data_dir, data_filename, headers_filename, index_name, n_rows, show_plot)
