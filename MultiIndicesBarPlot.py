@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import io
+import io, argparse
 import matplotlib.pyplot as plt
 import matplotlib.patches as pch
 from matplotlib.lines import Line2D
@@ -36,8 +36,10 @@ def dicrete_plot(df, index_columns, metric_columns, error_columns, unit=1.0, sca
     for c, ((label, items), cmap_name) in enumerate(zip(labels.items(), cmaps)):
         cmap = get_cmap(cmap_name)
         inx_colors = {}
+        inter_ = 0.3
+        slope_ = (1. - inter_) / len(items)
         for value in items:
-            inx_colors[value] = cmap(0.3 + items.tolist().index(value) * 0.2)
+            inx_colors[value] = cmap(inter_ + items.tolist().index(value) * slope_)
         colors[label] = inx_colors
 
     for r, row in enumerate(axs):
@@ -100,7 +102,7 @@ def dicrete_plot(df, index_columns, metric_columns, error_columns, unit=1.0, sca
     plt.subplots_adjust(hspace=0.1, wspace=0.)
     return fig
 
-def main_aggregatedData(data_dir, data_filename, headers_filename):
+def main_aggregatedData(data_filename, headers_filename, output_filename):
     """Run main script"""
 
     # read in the headers
@@ -109,7 +111,6 @@ def main_aggregatedData(data_dir, data_filename, headers_filename):
     index_columns = list(data_used.loc[:, "indices"])
     metric_columns = list(data_used.loc[:, "metrics"])
     error_columns = list(data_used.loc[:, "errors"])
-    headers = list(chain(index_columns, metric_columns, error_columns))
 
     # read in the data
     df = pd.read_csv(data_filename, usecols=headers )
@@ -118,16 +119,17 @@ def main_aggregatedData(data_dir, data_filename, headers_filename):
     fig = dicrete_plot(df, index_columns, metric_columns, error_columns, scale=1.5, legend_offset=0.5, capsize=5)
 
     # Export to svg file:
-    fig.savefig('MultiIndicesBarPlot.svg')
+    fig.savefig(output_filename)
 
-def main_individualData(data_dir, data_filename, headers_filename):
+def main_individualData(data_filename, headers_filename, output_filename):
     """Run main script"""
 
     # read in the headers
     data_used = pd.read_csv(headers_filename)
-    index_columns = list(data_used.loc[:, "indices"])
-    metric_columns = list(data_used.loc[:, "metrics"])
+    index_columns = list(data_used.loc[:, "indices"].dropna())
+    metric_columns = list(data_used.loc[:, "metrics"].dropna())
     headers = list(chain(index_columns, metric_columns))
+    print("Headers: ", headers)
 
     # read in the data
     df = pd.read_csv(data_filename, usecols=headers )
@@ -143,26 +145,51 @@ def main_individualData(data_dir, data_filename, headers_filename):
             metric_means=pd.NamedAgg(column=metric, aggfunc="mean"),
             metric_errors=pd.NamedAgg(column=metric, aggfunc="std"))
         df_tmp = df_tmp.rename(columns={"metric_means": metric + "_mean", "metric_errors": metric + "_error"})
-        agg_stats = agg_stats.merge(df_tmp, on=index_columns, how="outer")       
+        agg_stats = agg_stats.merge(df_tmp, on=index_columns, how="outer")
+    agg_stats.sort_values(by=metric_means[0], axis=0, ascending=True, inplace=True)
 
     # make the plot
     fig = dicrete_plot(agg_stats, index_columns, metric_means, metric_errors, scale=1.5, legend_offset=0.5, capsize=5)
 
     # Export to svg file:
-    fig.savefig('MultiIndicesBarPlot.svg')
+    fig.savefig(output_filename)
+
+def main(args):
+
+    # Input files (aggregated data, default)
+    #data_filename = "MultiIndicesBarPlotInput_aggregated.csv"
+    #headers_filename = "MultiIndicesBarPlotHeaders_aggregated.csv"
+    
+    # Input files (individual data, default)
+    data_filename = "MultiIndicesBarPlotInput.csv"
+    headers_filename = "MultiIndicesBarPlotHeaders.csv"
+    output_filename = "MultiIndicesBarPlot.svg"
+
+    # Parse command line arguments
+    if args.data_filename:
+        data_filename = args.data_filename
+    if args.headers_filename:
+        headers_filename = args.headers_filename
+    if args.output_filename:
+        output_filename = args.output_filename
+    print("input data: " + data_filename)
+    print("input headers: " + headers_filename)
+    print("output: " + output_filename)
+
+    #main_aggregatedData(data_filename, headers_filename)
+    main_individualData(data_filename, headers_filename, output_filename)
 
 # Run main
 if __name__ == "__main__":
 
-    data_dir = ""
-
-    # Input files (aggregated data)
-    #data_filename = data_dir + "MultiIndicesBarPlotInput_aggregated.csv"
-    #headers_filename = data_dir + "MultiIndicesBarPlotHeaders_aggregated.csv"
-    #main_aggregatedData(data_dir, data_filename, headers_filename)
-    
-    # Input files (individual data)
-    data_filename = data_dir + "MultiIndicesBarPlotInput.csv"
-    headers_filename = data_dir + "MultiIndicesBarPlotHeaders.csv"
-
-    main_individualData(data_dir, data_filename, headers_filename)
+    # Initialize parser
+    parser = argparse.ArgumentParser()
+ 
+    # Adding optional argument
+    parser.add_argument("-d", "--data", dest="data_filename", help = "Input data svg")
+    parser.add_argument("-l", "--headers", dest="headers_filename", help = "Input headers csv")
+    parser.add_argument("-o", "--output", dest="output_filename", help = "Output svg")
+ 
+    # Read arguments from command line
+    args = parser.parse_args()
+    main(args)
