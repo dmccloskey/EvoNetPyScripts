@@ -1,5 +1,5 @@
-indices,metrics,errors
-Index 1,Metric 1 Ave,Metric 1 Error
-Index 2,Metric 2 Ave,Metric 2 Error
-Index 3,Metric 3 Ave,Metric 3 Error
-Index 4,Metric 4 Ave,Metric 4 Error
+indices,metrics
+Index 1,Metric 1
+Index 2,Metric 2
+Index 3,Metric 3
+Index 4,Metric 4

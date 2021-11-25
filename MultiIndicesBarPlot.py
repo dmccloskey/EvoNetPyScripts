@@ -100,45 +100,69 @@ def dicrete_plot(df, index_columns, metric_columns, error_columns, unit=1.0, sca
     plt.subplots_adjust(hspace=0.1, wspace=0.)
     return fig
 
-def main(data_dir, data_filename, headers_filename):
+def main_aggregatedData(data_dir, data_filename, headers_filename):
     """Run main script"""
 
     # read in the headers
     data_used = pd.read_csv(headers_filename)
     #data_used = data[data["used_"]==True]
     index_columns = list(data_used.loc[:, "indices"])
-    metrics_columns = list(data_used.loc[:, "metrics"])
+    metric_columns = list(data_used.loc[:, "metrics"])
     error_columns = list(data_used.loc[:, "errors"])
-    headers = list(chain(index_columns, metrics_columns, error_columns))
+    headers = list(chain(index_columns, metric_columns, error_columns))
 
     # read in the data
-    # df = pd.read_csv(data_filename, usecols=headers )
-    df = pd.read_csv(io.StringIO(csv_str))
+    df = pd.read_csv(data_filename, usecols=headers )
 
     # make the plot
-    index_columns=['Index 1', 'Index 2', 'Index 3', 'Index 4']
-    metric_columns = ['Metric 1 Ave', 'Metric 2 Ave', 'Metric 3 Ave', 'Metric 4 Ave']
-    error_columns = ['Metric 1 Error', 'Metric 2 Error', 'Metric 3 Error', 'Metric 4 Error']
     fig = dicrete_plot(df, index_columns, metric_columns, error_columns, scale=1.5, legend_offset=0.5, capsize=5)
 
     # Export to svg file:
-    fig.savefig('test.svg')
+    fig.savefig('MultiIndicesBarPlot.svg')
+
+def main_individualData(data_dir, data_filename, headers_filename):
+    """Run main script"""
+
+    # read in the headers
+    data_used = pd.read_csv(headers_filename)
+    index_columns = list(data_used.loc[:, "indices"])
+    metric_columns = list(data_used.loc[:, "metrics"])
+    headers = list(chain(index_columns, metric_columns))
+
+    # read in the data
+    df = pd.read_csv(data_filename, usecols=headers )
+
+    # make the empty data frame for the aggregate statistics
+    metric_means = [item + "_mean" for item in metric_columns]
+    metric_errors = [item + "_error" for item in metric_columns]
+    agg_stats = pd.DataFrame(columns=index_columns)
+
+    # calculate the aggregated statistics (average and standard deviation)
+    for metric in metric_columns:
+        df_tmp = df.groupby(index_columns).agg(
+            metric_means=pd.NamedAgg(column=metric, aggfunc="mean"),
+            metric_errors=pd.NamedAgg(column=metric, aggfunc="std"))
+        df_tmp = df_tmp.rename(columns={"metric_means": metric + "_mean", "metric_errors": metric + "_error"})
+        agg_stats = agg_stats.merge(df_tmp, on=index_columns, how="outer")       
+
+    # make the plot
+    fig = dicrete_plot(agg_stats, index_columns, metric_means, metric_errors, scale=1.5, legend_offset=0.5, capsize=5)
+
+    # Export to svg file:
+    fig.savefig('MultiIndicesBarPlot.svg')
 
 # Run main
 if __name__ == "__main__":
-    # Demo data
-    csv_str = """
-"Index 1","Index 2","Index 3","Index 4","Metric 1 Ave","Metric 1 Error","Metric 2 Ave","Metric 2 Error","Metric 3 Ave","Metric 3 Error","Metric 4 Ave","Metric 4 Error"
-A,B,B,D,10.2,2.1,14.4,1.3,12.4,2.3,10.4,2.3
-B,C,C,A,11.3,1.5,13.2,2.3,10.2,1.3,15.2,1.3
-A,A,A,C,10.2,2.4,12.1,4.1,10.1,1.1,14.4,1.4
-D,C,C,B,14.9,1.2,11.7,2.5,11.7,5.5,11.7,5.5
-E,C,C,B,14.9,1.2,10.7,2.5,10.7,0.5,10.7,0.5
-F,A,A,A,14.9,1.2,14.7,2.5,11.7,1.5,11.7,1.5
-"""
-    # Input files
+
     data_dir = ""
+
+    # Input files (aggregated data)
+    #data_filename = data_dir + "MultiIndicesBarPlotInput_aggregated.csv"
+    #headers_filename = data_dir + "MultiIndicesBarPlotHeaders_aggregated.csv"
+    #main_aggregatedData(data_dir, data_filename, headers_filename)
+    
+    # Input files (individual data)
     data_filename = data_dir + "MultiIndicesBarPlotInput.csv"
     headers_filename = data_dir + "MultiIndicesBarPlotHeaders.csv"
 
-    main(data_dir, data_filename, headers_filename)
+    main_individualData(data_dir, data_filename, headers_filename)
