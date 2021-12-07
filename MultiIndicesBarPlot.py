@@ -42,8 +42,7 @@ def dicrete_plot(df, index_columns, metric_columns, error_columns,
         for (label, items), cmap_name in zip(labels.items(), cmaps)}
 
     # Find maximum value for metrics including error:
-    max_m_e = pd.DataFrame({m + ' + ' + e: df[m] + df[e] \
-        for i, (m, e) in enumerate(zip(metric_columns, error_columns))}).to_numpy().max()
+    max_m_e = pd.DataFrame({m + ' + ' + e: df[m] + df[e] for i, (m, e) in enumerate(zip(metric_columns, error_columns))}).to_numpy().max()
 
     # Apply settings for axes:
     for r, row in enumerate(axs):
@@ -138,9 +137,10 @@ def main_individualData(data_filename, headers_filename, output_filename, ascend
     """Run main script
     
     Expected input headers are the following:
-    indices
-    metrics
-    sort
+    indices: column with indices (discrete) values
+    metrics: column with metric (continuous) values
+    sort: columns to sort by
+    scale: columns to project/transform to the range 0 to 1
     """
 
     # read in the headers
@@ -148,8 +148,9 @@ def main_individualData(data_filename, headers_filename, output_filename, ascend
     index_columns = list(data_used.loc[:, "indices"].dropna())
     metric_columns = list(data_used.loc[:, "metrics"].dropna())
     sort_columns = list(data_used.loc[:, "sort"].dropna())
+    scale_columns = list(data_used.loc[:, "scale"].dropna())
 
-    headers = list(chain(index_columns, metric_columns, sort_columns))
+    headers = list(set(chain(index_columns, metric_columns, sort_columns)))
 
     # read in the data
     df = pd.read_csv(data_filename, usecols=headers )
@@ -157,25 +158,29 @@ def main_individualData(data_filename, headers_filename, output_filename, ascend
     # make the empty data frame for the aggregate statistics
     metric_means = [item + "_mean" for item in metric_columns]
     metric_errors = [item + "_error" for item in metric_columns]
-    metric_sort = [item + "_error" for item in sort_columns]
+    metric_sort = [item + "_mean" for item in sort_columns]
     agg_stats = pd.DataFrame(columns=index_columns)
 
     # calculate the aggregated statistics (average and standard deviation)
-    for metric in list(chain(metric_columns, sort_columns)):
+    for metric in list(set(chain(metric_columns, sort_columns))):
+        # scale the data
+        if (metric in scale_columns):
+            df[metric] = df[metric].transform(lambda x: (x - x.min())/ (x.max() - x.min()))
+
+        # aggregate statistics
         df_tmp = df.groupby(index_columns).agg(
             metric_means=pd.NamedAgg(column=metric, aggfunc="mean"),
             metric_errors=pd.NamedAgg(column=metric, aggfunc="std"))
         df_tmp = df_tmp.rename(columns={"metric_means": metric + "_mean", "metric_errors": metric + "_error"})
         agg_stats = agg_stats.merge(df_tmp, on=index_columns, how="outer")
 
-    # sort
+    # sort and filter
     agg_stats = agg_stats.sort_values(by=metric_sort, axis=0, ascending=ascending).reset_index(drop=True)
+    if top_n:
+        agg_stats = agg_stats.head(top_n)
 
     # make the plot
-    if top_n:
-        fig = dicrete_plot(agg_stats.head(top_n), index_columns, metric_means, metric_errors, scale=1.5, legend_offset=0.5, capsize=5)
-    else:        
-        fig = dicrete_plot(agg_stats, index_columns, metric_means, metric_errors, scale=1.5, legend_offset=0.5, capsize=5)
+    fig = dicrete_plot(agg_stats, index_columns, metric_means, metric_errors, scale=1.5, legend_offset=0.5, capsize=5)
 
     # Export to svg file:
     fig.savefig(output_filename)
@@ -194,14 +199,14 @@ def main(args):
     top_n = 0
 
     ## Parse command line arguments
-    #if args.data_filename:
-    #    data_filename = args.data_filename
-    #if args.headers_filename:
-    #    headers_filename = args.headers_filename
-    #if args.output_filename:
-    #    output_filename = args.output_filename
-    if args.ascending:
-        ascending = args.ascending
+    if args.data_filename:
+        data_filename = args.data_filename
+    if args.headers_filename:
+        headers_filename = args.headers_filename
+    if args.output_filename:
+        output_filename = args.output_filename
+    if args.ascending == "False":
+        ascending = False
     if args.top_n:
         top_n = args.top_n
     print("input data: " + data_filename)
@@ -223,7 +228,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--data", dest="data_filename", help = "Input data svg")
     parser.add_argument("-l", "--headers", dest="headers_filename", help = "Input headers csv")
     parser.add_argument("-o", "--output", dest="output_filename", help = "Output svg")
-    parser.add_argument("-a", "--ascending", type=bool, dest="ascending", help = "True: sort by ascending order; False: sort by descending order")
+    parser.add_argument("-a", "--ascending", dest="ascending", help = "True: sort by ascending order; False: sort by descending order")
     parser.add_argument("-n", "--topn", type=int, dest="top_n", help = "Top N rows to use for plotting; 0 = use all")
  
     # Read arguments from command line
